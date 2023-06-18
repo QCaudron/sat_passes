@@ -71,11 +71,6 @@ def get_satellite_passes(satellite: str, latitude: float, longitude: float, alti
             .dt.tz_convert("US/Pacific")
         )
 
-
-    # Format the datetimes to a clean string
-    for col in ["startUTC", "maxUTC", "endUTC"]:
-        df[col] = df[col].dt.strftime("%a %H:%M")
-
     # Clean up the dataframe -- add the satellite name and rename columns
     df["Satellite"] = satellite
     df = df.rename(columns=COLUMNS)[COLUMNS.values()]
@@ -85,11 +80,13 @@ def get_satellite_passes(satellite: str, latitude: float, longitude: float, alti
 
 def prettify_results(df: pd.DataFrame) -> str:
 
-    table = (
-        df
-        .sort_values(by=["AOS Time"])
-        .to_html(index=False, classes="pure-table pure-table-horizontal")
-    )
+    df = df.sort_values(by=["AOS Time"])
+
+        # Format the datetimes to a clean string
+    for col in ["AOS Time", "MOS Time", "LOS Time"]:
+        df[col] = df[col].dt.strftime("%a %H:%M")
+
+    table = df.to_html(index=False, classes="pure-table pure-table-horizontal")
     return table
 
 
