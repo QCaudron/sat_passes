@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Satellite Pass Harvester</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css"
+        integrity="sha384-X38yfunGUhNzHpBaEBsWLO+A0HDYOQi8ufWDkZ0k9e0eXz/tH3II7uKZ9msv++Ls" crossorigin="anonymous">
+</head>
+
+<style>
+    .lds-dual-ring {
+        display: inline-block;
+        width: 50px;
+        height: 50px;
+    }
+
+    .lds-dual-ring:after {
+        content: " ";
+        display: block;
+        width: 64px;
+        height: 64px;
+        margin-left: 8px;
+        border-radius: 50%;
+        border: 6px solid #000;
+        border-color: #000 transparent #000 transparent;
+        animation: lds-dual-ring 1.2s linear infinite;
+    }
+
+    @keyframes lds-dual-ring {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+</style>
+
+<body>
+    <h1>Satellite Pass Harvester</h1>
+
+    <form id="satelliteForm" class="pure-form pure-form-aligned" style="width: 400px">
+        <fieldset>
+
+            <div class="pure-control-group">
+                <label for="latitude">Latitude</label>
+                <input type="text" id="latitude" name="latitude">
+            </div>
+
+            <div class="pure-control-group">
+                <label for="longitude">Longitude</label>
+                <input type="text" id="longitude" name="longitude">
+            </div>
+
+            <div class="pure-control-group">
+                <label for="altitude">Altitude (m ASL)</label>
+                <input type="text" id="altitude" name="altitude">
+            </div>
+
+            <br />
+
+            <div class="pure-g">
+                <div style="margin: 0.3rem">
+                    <input type="button" class="pure-button" value="Tacoma" onclick="tacoma()">
+                </div>
+                <div style="margin: 0.3rem">
+                    <input type="button" class="pure-button" value="Lacey" onclick="lacey()">
+                </div>
+                <div style="margin: 0.3rem">
+                    <input type="button" class="pure-button" value="SSC" onclick="ssc()">
+                </div>
+            </div>
+
+            <br />
+
+            <div class="pure-control-group">
+                <div class="pure-g">
+                    <div class="pure-u-1-2">
+                        <label for="ISS">ISS</label>
+                        <input type="checkbox" id="ISS" name="ISS" value="ISS">
+                    </div>
+                    <div class="pure-u-1-2">
+                        <label for="TEVEL3">TEVEL-3</label>
+                        <input type="checkbox" id="TEVEL3" name="TEVEL3" value="TEVEL-3">
+                    </div>
+                    <div class="pure-u-1-2">
+                        <label for="SO50">SO-50</label>
+                        <input type="checkbox" id="SO50" name="SO50" value="SO-50">
+                    </div>
+                    <div class="pure-u-1-2">
+                        <label for="TEVEL4">TEVEL-4</label>
+                        <input type="checkbox" id="TEVEL4" name="TEVEL4" value="TEVEL-4">
+                    </div>
+                    <div class="pure-u-1-2">
+                        <label for="AO91">AO-91</label>
+                        <input type="checkbox" id="AO91" name="AO91" value="AO-91">
+                    </div>
+                    <div class="pure-u-1-2">
+                        <label for="TEVEL5">TEVEL-5</label>
+                        <input type="checkbox" id="TEVEL5" name="TEVEL5" value="TEVEL-5">
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="pure-controls">
+                <button class="pure-button" type="button" onclick="callAPI()" id="big_button">Call API</button>
+                <div class="lds-dual-ring" style="visibility: hidden" id="spinner"></div>
+            </div>
+        </fieldset>
+    </form>
+
+
+    <div id="results">
+    </div>
+
+    <script>
+
+        function tacoma() {
+            document.getElementById("latitude").value = "47.259107";
+            document.getElementById("longitude").value = "-122.460810";
+            document.getElementById("altitude").value = "113";
+        }
+
+        function lacey() {
+            document.getElementById("latitude").value = "47.095894";
+            document.getElementById("longitude").value = "-122.778734";
+            document.getElementById("altitude").value = "80";
+        }
+
+        function ssc() {
+            document.getElementById("latitude").value = "47.550082";
+            document.getElementById("longitude").value = "-122.352717";
+            document.getElementById("altitude").value = "95";
+        }
+
+        function callAPI() {
+            var spinner = document.getElementById("spinner");
+            var button = document.getElementById("big_button");
+
+            spinner.style.visibility = "visible";
+            button.textContent = "Calling API...";
+            button.disabled = true;
+
+            var latitude = encodeURIComponent(document.getElementById("latitude").value);
+            var longitude = encodeURIComponent(document.getElementById("longitude").value);
+            var altitude = encodeURIComponent(document.getElementById("altitude").value);
+
+            var checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+            var satellites = [];
+            for (var i = 0; i < checkboxes.length; i++) {
+                satellites.push(checkboxes[i].value);
+            }
+
+            var queryString = (
+                "?latitude=" + latitude +
+                "&longitude=" + longitude +
+                "&altitude=" + altitude +
+                "&satellites=" + satellites.join("_")
+            );
+
+            var params = {
+                "method": "POST",
+                "mode": "cors"
+            };
+
+            var url = "https://zmpx7wclrmitj4ks4d76fwcnbi0fsbgw.lambda-url.us-west-2.on.aws/";
+
+            // Call the API, turn the response into JSON, and log the result
+            fetch(url + queryString, params)
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById("results").innerHTML = html;
+                    spinner.style.visibility = "hidden";
+                    button.textContent = "Call API";
+                    button.disabled = false;
+                });
+
+
+        }
+    </script>
+</body>
+
+</html>
